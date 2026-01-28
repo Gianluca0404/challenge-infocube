@@ -1,22 +1,25 @@
-1. Modello dei Dati
-Il sistema gestisce due entità principali:
+Modello dei Dati
 
-Eventi Esistenti (Input): Un array di oggetti recuperati dal "database" simulato, dove ogni evento ha un id, un titolo e, soprattutto, i timestamp di inizio (start) e fine (end) in formato ISO 8601.
+Input (Agenda): Array di oggetti JSON con proprietà start ed end in formato standard ISO 8601.
 
-Slot Disponibili (Output): Una lista di intervalli temporali calcolati dinamicamente. Ogni slot ha una proprietà start, end, e uno stato available (boolean) che determina se può essere mostrato come prenotabile.
+Elaborazione: Conversione dei timestamp tramite Luxon per il calcolo delle differenze temporali in minuti.
 
-2. Assunzioni Fatte
-Durante lo sviluppo ho assunto che:
+Output (Slot): Mappatura dinamica degli intervalli liberi che superano la soglia di durata (duration) richiesta dall'utente.
 
-Orario Lavorativo Fisso: Il calendario opera in un range predefinito (08:00 - 18:00).
 
-Dati Coerenti: Si assume che gli eventi già presenti nel sistema non si sovrappongano tra loro all'origine.
+Assunzioni Fatte
 
-Granularità: La durata minima di uno slot è definita dall'utente (es. 30, 60, 90 min), e il sistema arrotonda i calcoli al minuto.
+Finestra Temporale: Operatività limitata a una giornata lavorativa standard (08:00 - 18:00).
 
-3. Trade-off Scelti
-Architettura Monolitica vs Microservizi: Ho scelto una struttura monolitica semplice (Express + Vanilla JS). Sebbene i microservizi siano più scalabili, per questo esercizio un'architettura leggera riduce la complessità di avvio e overhead.
+Integrità Input: Gli impegni già presenti nel sistema si considerano correttamente ordinati e non sovrapposti.
 
-Librerie Esterne: Ho scelto di includere Luxon per la gestione delle date. Il trade-off è l'aggiunta di una dipendenza esterna, ma il vantaggio in termini di precisione dei calcoli e protezione da errori sui fusi orari è enormemente superiore rispetto all'uso dell'oggetto Date nativo di JS.
+Localizzazione: I calcoli assumono il fuso orario locale dell'utente per una migliore UX.
 
-In-Memory Storage: Per i dati ho usato una variabile in memoria invece di un database reale. Questo velocizza il test e la valutazione, pur sapendo che in produzione andrebbe sostituito con un sistema persistente (es. MongoDB).
+
+Trade-off Scelti
+
+Affidabilità vs Peso (Luxon): Ho preferito includere una libreria esterna per la gestione delle date invece dell'oggetto nativo Date. Questo garantisce calcoli precisi ed evita i bug comuni dei fusi orari, a fronte di una minima dipendenza in più.
+
+Semplicità vs Scalabilità (In-memory): Per i dati ho utilizzato una variabile globale nel server. Questo semplifica l'avvio del test senza database esterni, pur essendo consapevole che in produzione andrebbe usata una persistenza reale (es. PostgreSQL).
+
+Controllo vs Velocità (Vanilla JS): Ho scelto JavaScript puro per il frontend invece di un framework. Questo dimostra padronanza del linguaggio e garantisce un caricamento istantaneo dell'interfaccia.
