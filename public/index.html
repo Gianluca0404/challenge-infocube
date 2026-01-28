@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Gestione Appuntamenti - Challenge</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Sistema Gestione Appuntamenti</h1>
+        <p>Ricerca e verifica slot disponibili in agenda</p>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #64748b;">Data Appuntamento</label>
+            <input type="date" id="dateInput" style="width: 100%; box-sizing: border-box;">
+        </div>
+        <div class="input-group">
+            <label style="display:block; font-size: 0.8rem; margin-bottom: 5px; color: #64748b;">Durata Desiderata</label>
+            <select id="durationInput" style="width: 100%; box-sizing: border-box;">
+                <option value="30">30 Minuti</option>
+                <option value="60" selected>1 Ora</option>
+                <option value="90">1.5 Ore</option>
+                <option value="120">2 Ore</option>
+            </select>
+        </div>
+        <div style="display: flex; align-items: flex-end;">
+            <button id="searchBtn" onclick="updateTimeline()" style="width: 100%;">Verifica Disponibilità</button>
+        </div>
+    </div>
+
+    <div id="statsContainer"></div>
+    <div id="timelineContainer" class="timeline">
+        <p style="text-align:center; color:#94a3b8; padding:20px;">Seleziona una data per visualizzare gli spazi liberi</p>
+    </div>
+</div>
+
+<script>
+    // Imposta data minima su oggi
+    const dateInput = document.getElementById('dateInput');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+    dateInput.value = today;
+
+    async function updateTimeline() {
+        const date = dateInput.value;
+        const duration = document.getElementById('durationInput').value;
+        const container = document.getElementById('timelineContainer');
+        const stats = document.getElementById('statsContainer');
+        const btn = document.getElementById('searchBtn');
+
+        // Reset UI
+        btn.innerText = '⌛ Elaborazione...';
+        btn.disabled = true;
+        const oldConfirm = document.getElementById('confirmBtn');
+        if(oldConfirm) oldConfirm.remove();
+
+        try {
+            const response = await fetch('/api/get-slots', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date, duration })
+            });
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error);
+
+            container.innerHTML = '';
+            stats.innerHTML = `
+                <div class="stats-bar">
+                    <span>📅 Impegni: ${data.occupied.length}</span>
+                    <span>✅ Slot Liberi: ${data.available.length}</span>
+                    ${data.isWeekend ? '<span>🏖️ Fine Settimana</span>' : ''}
+                </div>
+            `;
+
+            const allBlocks = [...data.occupied, ...data.available].sort((a, b) => 
+                a.start.localeCompare(b.start)
+            );
+
+            if (data.available.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:30px;">🚫 Nessuna disponibilità trovata per la durata selezionata.</div>';
+            }
+
+            allBlocks.forEach(block => {
+                const div = document.createElement('div');
+                div.className = `time-block ${block.type}`;
+                div.innerHTML = `
+                    <span class="time-label">${block.start}</span>
+                    <strong>${block.type === 'busy' ? '🔒 OCCUPATO: ' + block.title : '✨ DISPONIBILE'}</strong><br>
+                    <small>${block.start} - ${block.end}</small>
+                `;
+
+                if (block.type === 'free') {
+                    div.onclick = () => {
+                        document.querySelectorAll('.time-block').forEach(el => el.classList.remove('selected-slot'));
+                        div.classList.add('selected-slot');
+                        showConfirmBtn(block);
+                    };
+                }
+                container.appendChild(div);
+            });
+
+        } catch (err) {
+            alert(err.message);
+            container.innerHTML = `<p style="color:red; text-align:center">${err.message}</p>`;
+        } finally {
+            btn.innerText = 'Verifica Disponibilità';
+            btn.disabled = false;
+        }
+    }
+
+    function showConfirmBtn(block) {
+        let btn = document.getElementById('confirmBtn');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'confirmBtn';
+            document.body.appendChild(btn);
+        }
+        btn.innerText = `Prenota Slot ${block.start} - ${block.end}`;
+        btn.onclick = () => alert(`Conferma: Hai selezionato lo slot delle ore ${block.start}.`);
+    }
+</script>
+
+</body>
+</html>
