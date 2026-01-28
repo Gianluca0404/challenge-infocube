@@ -1,6 +1,6 @@
 # Sistema Gestione Appuntamenti - Challenge Infocube
 
-Soluzione avanzata per la ricerca e visualizzazione dinamica di slot liberi in agenda, sviluppata con Node.js e Vanilla JS.
+Soluzione avanzata per la ricerca e visualizzazione dinamica di slot liberi in agenda, sviluppata con Node.js
 
 ## Funzionalità principali
 - **Algoritmo di calcolo dinamico**: Identifica gli spazi liberi incrociando l'orario lavorativo (08:00-18:00) con gli impegni esistenti.
