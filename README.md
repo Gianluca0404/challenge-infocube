@@ -1,27 +1,23 @@
-Modello dei Dati
+### Data Model
 
-- Input (Agenda): Array di oggetti JSON con proprietà start ed end in formato standard ISO 8601.
+* **Input (Agenda):** An array of JSON objects with `start` and `end` properties in the standard ISO 8601 format.
 
-- Elaborazione: Conversione dei timestamp tramite Luxon per il calcolo delle differenze temporali in minuti.
+* **Processing:** Conversion of timestamps using Luxon to calculate time differences in minutes.
 
-- Output (Slot): Mappatura dinamica degli intervalli liberi che superano la soglia di durata (duration) richiesta dall'utente.
+* **Output (Slots):** A dynamic mapping of free intervals that exceed the user-defined duration threshold.
 
+### Assumptions Made
 
+* **Time Window:** The operation is limited to a standard working day (08:00 - 18:00).
 
-Assunzioni Fatte
+* **Input Integrity:** Existing appointments in the system are assumed to be correctly sorted and non-overlapping.
 
-- Finestra Temporale: Operatività limitata a una giornata lavorativa standard (08:00 - 18:00).
+* **Localization:** Calculations assume the user's local timezone for a better UX.
 
-- Integrità Input: Gli impegni già presenti nel sistema si considerano correttamente ordinati e non sovrapposti.
+### Trade-offs Chosen
 
-- Localizzazione: I calcoli assumono il fuso orario locale dell'utente per una migliore UX.
+* **Reliability vs. Weight (Luxon):** I chose to include an external library for date management instead of using the native `Date` object. This ensures accurate calculations and avoids common timezone bugs, with the trade-off of a minimal additional dependency.
 
+* **Simplicity vs. Scalability (In-memory):** I used a global variable in the server to store data. This simplifies test setup without external databases, though I’m aware that in production, a real persistence layer (e.g., PostgreSQL) should be used.
 
-
-Trade-off Scelti
-
-- Affidabilità vs Peso (Luxon): Ho preferito includere una libreria esterna per la gestione delle date invece dell'oggetto nativo Date. Questo garantisce calcoli precisi ed evita i bug comuni dei fusi orari, a fronte di una minima dipendenza in più.
-
-- Semplicità vs Scalabilità (In-memory): Per i dati ho utilizzato una variabile globale nel server. Questo semplifica l'avvio del test senza database esterni, pur essendo consapevole che in produzione andrebbe usata una persistenza reale (es. PostgreSQL).
-
-- Controllo vs Velocità (Vanilla JS): Ho scelto JavaScript puro per il frontend invece di un framework. Questo dimostra padronanza del linguaggio e garantisce un caricamento istantaneo dell'interfaccia.
+* **Control vs. Speed (Vanilla JS):** I chose plain JavaScript for the frontend instead of a framework. This demonstrates mastery of the language and guarantees instant interface loading.
